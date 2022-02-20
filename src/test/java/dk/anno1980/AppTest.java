@@ -13,7 +13,6 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -31,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-public class AppTest {
+class AppTest {
 
   @LocalServerPort private int port;
 
@@ -55,7 +54,7 @@ public class AppTest {
           .withExposedPorts(8474, proxyPort);
 
   @Test
-  public void proxyOnlyWorks() throws IOException {
+  void proxyOnlyWorks() throws IOException {
     ToxiproxyClient toxiproxyClient =
         new ToxiproxyClient(toxiproxy.getHost(), toxiproxy.getFirstMappedPort());
 
@@ -73,7 +72,7 @@ public class AppTest {
   }
 
   @Test
-  public void proxyWithLatency() throws IOException {
+  void proxyWithLatency() throws IOException {
     ToxiproxyClient client =
         new ToxiproxyClient(toxiproxy.getHost(), toxiproxy.getFirstMappedPort());
 
@@ -81,7 +80,9 @@ public class AppTest {
 
     Proxy proxy =
         client.createProxy(
-            "my-proxy", "0.0.0.0:" + proxyPort, hostRunningTheAppEndpoint + ":" + port);
+            "my-proxy",
+            "0.0.0.0:" + proxyPort,
+            hostRunningTheAppEndpoint.getHostAddress() + ":" + port);
     proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 4_000);
 
     ResponseEntity<String> stringResponseEntity =
@@ -91,7 +92,7 @@ public class AppTest {
   }
 
   @Test
-  public void proxyWithLatencyTimeout() throws IOException {
+  void proxyWithLatencyTimeout() throws IOException {
     ToxiproxyClient client =
         new ToxiproxyClient(toxiproxy.getHost(), toxiproxy.getFirstMappedPort());
 
@@ -99,7 +100,9 @@ public class AppTest {
 
     Proxy proxy =
         client.createProxy(
-            "my-proxy", "0.0.0.0:" + proxyPort, hostRunningTheAppEndpoint + ":" + port);
+            "my-proxy",
+            "0.0.0.0:" + proxyPort,
+            hostRunningTheAppEndpoint.getHostAddress() + ":" + port);
     proxy.toxics().latency("latency", ToxicDirection.DOWNSTREAM, 6_000);
 
     ResourceAccessException resourceAccessException =
@@ -113,7 +116,7 @@ public class AppTest {
   }
 
   @Test
-  public void worksNoProxy() {
+  void worksNoProxy() {
     ResponseEntity<String> stringResponseEntity =
         this.restTemplate.getForEntity("http://localhost:" + port + "/", String.class);
     assertEquals(HttpStatus.OK, stringResponseEntity.getStatusCode());
